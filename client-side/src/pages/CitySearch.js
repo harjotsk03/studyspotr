@@ -5,7 +5,7 @@ import useGeolocation from '../hooks/useGeolocation';
 import useLocations from '../locations';
 import { Circle } from '../Circle';
 import InfoCard from '../components/InfoCard';
-import Directions from '../components/Directions'; // Import Directions component
+import Directions from '../components/Directions';
 import { useNavigate } from 'react-router-dom';
 import { FiNavigation } from "react-icons/fi";
 import { getDistance } from '../utils/distance';
@@ -18,9 +18,10 @@ const CitySearch = () => {
   const [travelTime, setTravelTime] = useState('');
   const [travelMode, setTravelMode] = useState('DRIVING');
   const locations = useLocations();
-  const [mapKey, setMapKey] = useState(0); // State to force map reload
+  const [mapKey, setMapKey] = useState(0);
   const [hideUI, setHideUI] = useState(false);
-  const [userRating, setUserRating] = useState(null); // State for rating
+  const [userRating, setUserRating] = useState(null);
+  const [showLocations, setShowLocations] = useState(false); // Track whether to show locations
 
   const getRatingStars = (rating) => {
     const fullStars = Math.floor(rating);
@@ -31,9 +32,8 @@ const CitySearch = () => {
       totalStars.push(<FaStarHalfAlt className="star-full" />);
     }
 
-    // Optionally add empty stars to reach a total of 5 stars
     while (totalStars.length < 5) {
-      totalStars.push(<FaStar key={totalStars.length} className="text-gray-200" />); // Use a different color for empty stars
+      totalStars.push(<FaStar key={totalStars.length} className="text-gray-200" />);
     }
 
     return totalStars;
@@ -52,10 +52,10 @@ const CitySearch = () => {
   const reloadMap = useCallback(() => {
     setMapKey(prevKey => prevKey + 1);
     setSelectedCity(null);
-    setUserRating(null); // Reset rating when reloading the map
+    setHideUI(false);
+    setUserRating(null);
   }, []);
 
-  // Filter locations based on search term
   const filteredLocations = locations.filter(loc =>
     loc.info.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -64,6 +64,7 @@ const CitySearch = () => {
     setSelectedCity(null);
     setTravelTime('');
     setUserRating(null);
+    setShowLocations(false); // Hide location list on map click
   };
 
   const handleMarkerClick = (loc) => {
@@ -71,21 +72,18 @@ const CitySearch = () => {
     setTravelTime('');
     const distance = getDistance(location.lat, location.lng, loc.location.lat, loc.location.lng);
     if (distance <= 500) {
-      setUserRating(loc.info.rating); // Assuming loc.info.rating holds the current rating
+      setUserRating(loc.info.rating);
     } else {
-      setUserRating(null); // Hide rating if out of range
+      setUserRating(null);
     }
   };
 
   const handleRatingChange = (rating) => {
     if (selectedCity) {
-      // Update the rating for the selected city (this is just a placeholder)
-      // You would need to integrate with your backend to persist this change
       console.log(`Rating for ${selectedCity.info.name}: ${rating}`);
     }
   };
 
-  // Effect to prevent scrolling on the entire page
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
@@ -93,48 +91,59 @@ const CitySearch = () => {
     };
   }, []);
 
+  const handleHideUI = () => {
+    setHideUI(prevHide => !prevHide);
+  };
+
+  const handleAddSpot = () => {
+    navigate("/addStudySpot");
+  };
+
+  const handleSearchChange = (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    setShowLocations(term.length > 0); // Show locations if there is a search term
+  };
+
   if (error) {
     return <div>Error: {error.message}</div>;
   }
 
-  const handleHideUI = () => {
-    setHideUI(prevHide => !prevHide);
-  }
-
-  const handleAddSpot = () => {
-    navigate("/addStudySpot");
-  }
-
   return (
     <div className='w-full h-screen relative'>
-      <button onClick={handleAddSpot} className='w-max fixed bottom-6 flex flex-row items-center bg-blue-500 text-white z-50 px-2 py-1.5 text-xs gap-1 right-16 shadow-lg rounded-lg'><FaPlus size={8}/> Add a Study Spot</button>
+      {!hideUI && <button onClick={handleAddSpot} className='w-max fixed bottom-6 flex flex-row items-center bg-blue-500 text-white z-50 px-2 py-1.5 text-xs gap-1 right-5 lg:right-16 shadow-lg rounded-lg'>
+        <FaPlus size={8}/> Add a Study Spot
+      </button>}
       <button
         onClick={reloadMap}
-        className="fixed top-4 left-60 px-3 py-3 -ml-1.5 button z-30 text-sm bg-white text-black rounded shadow-md hover:bg-gray-200"
+        className="fixed top-4 left-1/2 lg:left-60 px-3 py-3 -ml-1.5 button z-30 text-sm bg-white text-black rounded shadow-md hover:bg-gray-200"
       >
         <FiNavigation />
       </button>
 
-      <div className='fixed top-4 w-52 left-4 px-3 py-3 z-30 text-sm bg-white text-black rounded shadow-md'>
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search for a location"
-          className='p-2 border w-full border-gray-300 rounded'
-        />
-        <ul className='mt-2 bg-white border border-gray-300 rounded'>
-          {filteredLocations.map(loc => (
-            <li
-              key={loc.key}
-              onClick={() => handleMarkerClick(loc)}
-              className='p-2 cursor-pointer hover:bg-gray-100'
-            >
-              {loc.info.name}
-            </li>
-          ))}
-        </ul>
-      </div>
+      {!hideUI && 
+      <div className='fixed top-4 w-40 lg:w-52 left-4 px-3 py-3 z-30 text-sm bg-white text-black rounded shadow-md'>
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={handleSearchChange}
+        placeholder="Search for a location"
+        className='p-2 border w-full border-gray-300 rounded'
+      />
+      <ul className={`mt-2 bg-white border border-gray-300 rounded ${showLocations ? 'block' : 'hidden'} lg:block`}>
+        {filteredLocations.map(loc => (
+          <li
+            key={loc.key}
+            onClick={() => handleMarkerClick(loc)}
+            className='p-2 cursor-pointer hover:bg-gray-100'
+          >
+            {loc.info.name}
+          </li>
+        ))}
+      </ul>
+    </div>
+    }
+      
       
       {location ? (
         <>
@@ -185,11 +194,11 @@ const CitySearch = () => {
             />
           </Map>
 
-          {selectedCity && hideUI ? <button className='fixed bottom-0 w-screen bg-white' onClick={handleHideUI}>Show</button> : <></>}
+          {selectedCity && hideUI ? <button className='fixed bottom-16 px-2 py-3 text-sm rounded-lg w-2/3 left-16 bg-white' onClick={handleHideUI}>Show Info</button> : <></>}
 
           {selectedCity && (
             <div className={`fixed bottom-0 lg:top-4 lg:right-4 m-4 p-4 bg-white shadow-md rounded-lg lg:w-1/4 h-2/3 z-40 flex flex-col ${hideUI ? 'hidden' : ''}`}>
-              <button className='flex lg:hidden mb-2' onClick={handleHideUI}>Hide</button>
+              <button className='flex lg:hidden mb-2 text-sm' onClick={handleHideUI}>Hide Info</button>
               <div className='flex-1 flex flex-col'>
                 <div className='flex-1 overflow-auto'>
                   <InfoCard
@@ -225,15 +234,23 @@ const CitySearch = () => {
                       </button>
                       <button
                         onClick={() => setTravelMode('TRANSIT')}
-                        className={`px-2 py-1 rounded ${travelMode === 'TRANSIT' ? 'text-blue-500' : ''} text-md`}
+                        className={`px-2 py-1 rounded ${travelMode === 'TRANSIT' ? 'text-blue-500' : ''} text-lg`}
                       >
                         <FaBusAlt />
                       </button>
                     </div>
-                    <div className='text-xs mt-1'>Estimated Travel Time: {travelTime}</div>
-                  </div>
-                </div>
-                <div className='overflow-scroll flex flex-col gap-2 h-64'>
+                    <div className='mt-4'>
+                      {travelTime ? (
+                        <p className='text-gray-800'>
+                          Estimated travel time: {travelTime}
+                        </p>
+                      ) : (
+                        <p className='text-gray-800'>
+                          Select a location to see travel time
+                        </p>
+                      )}
+                    </div>
+                    <div className='overflow-scroll flex flex-col gap-2 h-64'>
                   {descriptors.map(descriptor => (
                     <div key={descriptor.key} className='p-3 bg-gray-100'>
                       <p className='text-sm flex flex-row items-center gap-1'>{descriptor.icon} {descriptor.key}: {descriptor.value}</p> 
@@ -247,13 +264,14 @@ const CitySearch = () => {
                     </div>
                   ))}
                 </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
-
         </>
       ) : (
-        <div>Loading your location...</div>
+        <p>Loading...</p>
       )}
     </div>
   );
