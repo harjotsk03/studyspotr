@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.info-card {
+    max-height: 70vh; /* Adjust as needed */
+    overflow-y: auto; /* Enables scrolling */
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    position: relative; /* Ensure it's positioned correctly */
+  }
+  
+  .travel-mode-buttons {
+    margin-top: 10px; /* Adds space between content and buttons */
+  }
+  
+  .travel-mode-buttons button {
+    margin-right: 10px; /* Adds space between buttons */
+  }
+  
+
+  .active {
+    color: #4A90E2;
+  }
+  
+
+  .button{
+    background: white;
+    transition: 0.3s ease-in-out;
+  }
+
+  .button:hover{
+    background: #4A90E2;
+    color: white;
+  }
+
+  .star-full {
+    color: gold; /* Or use any other color */
+  }
+  .star-empty {
+    color: #d3d3d3; /* Light gray for empty stars */
+  }
+  
