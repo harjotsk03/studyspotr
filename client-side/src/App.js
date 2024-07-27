@@ -3,7 +3,7 @@ import './App.css';
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { APIProvider } from "@vis.gl/react-google-maps";
-import FindStudySpot from './pages/FindStudySpot';
+import AddSpot from './pages/AddSpot';
 import CitySearch from './pages/CitySearch';
 
 function App() {
@@ -15,6 +15,7 @@ function App() {
         <div className="App">
           <Routes>
             <Route path="/" element={<CitySearch />} />
+            <Route path="/addStudySpot" element={<AddSpot />} />
           </Routes>
         </div>
       </APIProvider>

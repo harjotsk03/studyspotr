@@ -41,6 +41,39 @@ const useLocations = () => {
               openingHours: "9:00 AM - 11:00 PM",
             },
           },
+          {
+            key: "Starbucks Morgan Crossing",
+            location: { lat: 49.048194756726005, lng: -122.78309248387815 },
+            info: {
+              name: "Starbucks Morgan Crossing",
+              rating: 5,
+              requiresID: false,
+              silentArea: false,
+              openingHours: "6:00 AM - 9:00 PM",
+            },
+          },
+          {
+            key: "UBC Life Building 2nd Floor Study Area",
+            location: { lat: 49.26764954674522, lng: -123.2499998080245 },
+            info: {
+              name: "UBC Life Building 2nd Floor Study Area",
+              rating: 4.5,
+              requiresID: true,
+              silentArea: false,
+              openingHours: "6:00 AM - 9:00 PM",
+            },
+          },
+          {
+            key: "UBC Life Building 1nd Floor Collegia",
+            location: { lat: 49.26733538454429, lng: -123.25008196906498 },
+            info: {
+              name: "UBC Life Building 1nd Floor Collegia",
+              rating: 4,
+              requiresID: true,
+              silentArea: false,
+              openingHours: "6:00 AM - 9:00 PM",
+            },
+          },
         ];
 
         const updatedLocations = await Promise.all(initialLocations.map(async (loc) => {
