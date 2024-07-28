@@ -198,7 +198,7 @@ const CitySearch = () => {
           {selectedCity && hideUI ? <button className='fixed bottom-16 px-2 py-3 text-sm rounded-lg w-2/3 left-16 bg-white' onClick={handleHideUI}>Show Info</button> : <></>}
 
           {selectedCity && (
-            <div className={`fixed bottom-0 lg:top-4 lg:right-4 m-4 p-4 bg-white shadow-md rounded-lg lg:w-1/4 h-2/3 z-40 flex flex-col ${hideUI ? 'hidden' : ''}`}>
+            <div className={`fixed bottom-0 lg:top-4 lg:right-4 m-4 p-4 bg-white shadow-md rounded-lg lg:w-1/4 lg:h-2/3 z-40 flex flex-col ${hideUI ? 'hidden' : ''}`}>
               <button className='flex lg:hidden mb-2 text-sm' onClick={handleHideUI}>Hide Info</button>
               <div className='flex-1 overflow-hidden flex flex-col'>
                 <div className='flex-1 overflow-hidden'>
