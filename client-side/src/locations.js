@@ -32,13 +32,13 @@ const useLocations = () => {
           },
           {
             key: "SFU Engineering Building",
-            location: { lat: 49.124026, lng: -122.829598 },
+            location: { lat: 49.18909007053937, lng: -122.85016331715596 },
             info: {
               name: "SFU Engineering Building",
-              rating: 3.5,
+              rating: 4.75,
               requiresID: true,
               silentArea: true,
-              openingHours: "9:00 AM - 11:00 PM",
+              openingHours: "7:00 AM - 10:30 PM",
             },
           },
           {
@@ -50,6 +50,17 @@ const useLocations = () => {
               requiresID: false,
               silentArea: false,
               openingHours: "6:00 AM - 9:00 PM",
+            },
+          },
+          {
+            key: "Surrey Central Blenz Cafe",
+            location: { lat: 49.18804917291319, lng: -122.84939371980073 },
+            info: {
+              name: "Surrey Central Blenz Cafe",
+              rating: 4.5,
+              requiresID: false,
+              silentArea: false,
+              openingHours: "9:00 AM - 9:00 PM",
             },
           },
           {

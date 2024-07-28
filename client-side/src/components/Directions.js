@@ -30,26 +30,6 @@ function Directions({ origin, destination, travelMode, onTravelTimeChange }) {
             directionsRenderer.setDirections(result);
             const duration = result.routes[0].legs[0].duration.text;
             onTravelTimeChange(duration);
-
-            // Adjust the map's viewport to focus on the route and destination
-            if (map) {
-              const bounds = new window.google.maps.LatLngBounds();
-              const route = result.routes[0];
-              
-              // Extend the bounds to include the origin and destination
-              bounds.extend(origin);
-              bounds.extend(destination);
-              
-              // Extend the bounds to include all route points
-              route.legs.forEach(leg => {
-                bounds.extend(leg.start_location);
-                bounds.extend(leg.end_location);
-              });
-
-              // Center and zoom the map to fit the route
-              map.fitBounds(bounds);
-              map.setZoom(Math.min(map.getZoom(), 15)); // Set a reasonable zoom level
-            }
           }
         }
       );

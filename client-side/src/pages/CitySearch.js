@@ -54,6 +54,7 @@ const CitySearch = () => {
     setSelectedCity(null);
     setHideUI(false);
     setUserRating(null);
+    setSearchTerm('');
   }, []);
 
   const filteredLocations = locations.filter(loc =>
@@ -123,25 +124,25 @@ const CitySearch = () => {
 
       {!hideUI && 
       <div className='fixed top-4 w-40 lg:w-52 left-4 px-3 py-3 z-30 text-sm bg-white text-black rounded shadow-md'>
-      <input
-        type="text"
-        value={searchTerm}
-        onChange={handleSearchChange}
-        placeholder="Search for a location"
-        className='p-2 border w-full border-gray-300 rounded'
-      />
-      <ul className={`mt-2 bg-white border border-gray-300 rounded ${showLocations ? 'block' : 'hidden'} lg:block`}>
-        {filteredLocations.map(loc => (
-          <li
-            key={loc.key}
-            onClick={() => handleMarkerClick(loc)}
-            className='p-2 cursor-pointer hover:bg-gray-100'
-          >
-            {loc.info.name}
-          </li>
-        ))}
-      </ul>
-    </div>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          placeholder="Search for a Study Spot"
+          className='p-2 border w-full border-gray-300 rounded'
+        />
+        <ul className={`mt-2 bg-white border border-gray-300 rounded ${showLocations ? 'block' : 'hidden'} lg:block h-24 overflow-scroll`}>
+          {filteredLocations.map(loc => (
+            <li
+              key={loc.key}
+              onClick={() => handleMarkerClick(loc)}
+              className='p-2 cursor-pointer hover:bg-gray-100'
+            >
+              {loc.info.name}
+            </li>
+          ))}
+        </ul>
+      </div>
     }
       
       
@@ -199,8 +200,8 @@ const CitySearch = () => {
           {selectedCity && (
             <div className={`fixed bottom-0 lg:top-4 lg:right-4 m-4 p-4 bg-white shadow-md rounded-lg lg:w-1/4 h-2/3 z-40 flex flex-col ${hideUI ? 'hidden' : ''}`}>
               <button className='flex lg:hidden mb-2 text-sm' onClick={handleHideUI}>Hide Info</button>
-              <div className='flex-1 flex flex-col'>
-                <div className='flex-1 overflow-auto'>
+              <div className='flex-1 overflow-hidden flex flex-col'>
+                <div className='flex-1 overflow-hidden'>
                   <InfoCard
                     info={selectedCity.info}
                     onChangeMode={setTravelMode}
@@ -250,20 +251,22 @@ const CitySearch = () => {
                         </p>
                       )}
                     </div>
-                    <div className='overflow-scroll flex flex-col gap-2 h-64'>
-                  {descriptors.map(descriptor => (
-                    <div key={descriptor.key} className='p-3 bg-gray-100'>
-                      <p className='text-sm flex flex-row items-center gap-1'>{descriptor.icon} {descriptor.key}: {descriptor.value}</p> 
+                    <div className='flex flex-col gap-2 mb-1 pt-2 h-36'>
+                      {descriptors.map(descriptor => (
+                        <div key={descriptor.key} className='p-3 bg-gray-100'>
+                          <p className='text-sm flex flex-row items-center gap-1'>{descriptor.icon} {descriptor.key}: {descriptor.value}</p> 
+                        </div>
+                      ))}
+                      <h3 className='text-md mt-2'>Reviews</h3>
                     </div>
-                  ))}
-                  <h3 className='text-md mt-2 -mb-1'>Reviews</h3>
-                  {reviews.map(review => (
-                    <div key={review.key} className='p-3 bg-gray-100 flex flex-col items-start'>
-                      <p className='text-sm font-semibold'>{review.name}</p>
-                      <p className='text-xs'>{review.description}</p>
+                    <div className='overflow-scroll h-32 flex flex-col gap-2'>
+                      {reviews.map(review => (
+                        <div key={review.key} className='p-3 bg-gray-100 flex flex-col items-start'>
+                          <p className='text-sm font-semibold'>{review.name}</p>
+                          <p className='text-xs'>{review.description}</p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
                   </div>
                 </div>
               </div>
