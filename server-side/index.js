@@ -24,13 +24,14 @@ app.use(express.json());
 
 app.use(cors({
   origin: [
-      'http://localhost:3000',
-      'http://localhost:3003',
-      'studyspotr.vercel.app',
-      'studyspotr-harjot-singhs-projects.vercel.app',
-      'studyspotr-git-main-harjot-singhs-projects.vercel.app'
+    'http://localhost:3000',
+    'http://localhost:3003',
+    'https://studyspotr.vercel.app',
+    'https://studyspotr-harjot-singhs-projects.vercel.app',
+    'https://studyspotr-git-main-harjot-singhs-projects.vercel.app'
   ],
 }));
+
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
