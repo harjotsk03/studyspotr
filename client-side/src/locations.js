@@ -18,7 +18,7 @@ const useLocations = () => {
       const fetchLocations = async () => {
         try {
           // Fetch locations from your backend
-          const response = await axios.get('http://localhost:3001/locations');
+          const response = await axios.get('https://studyspotr.onrender.com/locations');
           const initialLocations = response.data;
 
           // Fetch addresses and update locations

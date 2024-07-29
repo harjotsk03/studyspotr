@@ -186,7 +186,7 @@ const AddSpot = () => {
 
   const submitStudySpot = async () => {
     try {
-      const response = await axios.post('http://localhost:3001/createstudyspot', {
+      const response = await axios.post('https://studyspotr.onrender.com/createstudyspot', {
         key: newLocationName,
         name: newLocationName,
         rating: newLocationRating,
