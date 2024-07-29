@@ -1,6 +1,6 @@
-// locations.js
 import { useState, useEffect } from 'react';
 import useGeocode from './hooks/useGeocode';
+import axios from 'axios'; // Make sure to install axios
 
 const useLocations = () => {
   const [locations, setLocations] = useState([]);
@@ -13,95 +13,41 @@ const useLocations = () => {
     }
   }, []);
 
-  
-
   useEffect(() => {
     if (googleMaps) {
       const fetchLocations = async () => {
-        const initialLocations = [
-          {
-            key: "Gurleens House",
-            location: { lat: 49.123970, lng: -122.829210 },
-            info: {
-              name: "Gurleen's House",
-              rating: 4.5,
-              requiresID: false,
-              silentArea: false,
-              openingHours: "9:00 AM - 9:00 PM",
-            },
-          },
-          {
-            key: "SFU Engineering Building",
-            location: { lat: 49.18909007053937, lng: -122.85016331715596 },
-            info: {
-              name: "SFU Engineering Building",
-              rating: 4.75,
-              requiresID: true,
-              silentArea: true,
-              openingHours: "7:00 AM - 10:30 PM",
-            },
-          },
-          {
-            key: "Starbucks Morgan Crossing",
-            location: { lat: 49.048194756726005, lng: -122.78309248387815 },
-            info: {
-              name: "Starbucks Morgan Crossing",
-              rating: 5,
-              requiresID: false,
-              silentArea: false,
-              openingHours: "6:00 AM - 9:00 PM",
-            },
-          },
-          {
-            key: "Surrey Central Blenz Cafe",
-            location: { lat: 49.18804917291319, lng: -122.84939371980073 },
-            info: {
-              name: "Surrey Central Blenz Cafe",
-              rating: 4.5,
-              requiresID: false,
-              silentArea: false,
-              openingHours: "9:00 AM - 9:00 PM",
-            },
-          },
-          {
-            key: "UBC Life Building 2nd Floor Study Area",
-            location: { lat: 49.26764954674522, lng: -123.2499998080245 },
-            info: {
-              name: "UBC Life Building 2nd Floor Study Area",
-              rating: 4.5,
-              requiresID: true,
-              silentArea: false,
-              openingHours: "6:00 AM - 9:00 PM",
-            },
-          },
-          {
-            key: "UBC Life Building 1nd Floor Collegia",
-            location: { lat: 49.26733538454429, lng: -123.25008196906498 },
-            info: {
-              name: "UBC Life Building 1nd Floor Collegia",
-              rating: 4,
-              requiresID: true,
-              silentArea: false,
-              openingHours: "6:00 AM - 9:00 PM",
-            },
-          },
-        ];
+        try {
+          // Fetch locations from your backend
+          const response = await axios.get('http://localhost:3001/locations');
+          const initialLocations = response.data;
 
-        const updatedLocations = await Promise.all(initialLocations.map(async (loc) => {
-          const address = await getAddress(loc.location.lat, loc.location.lng);
-          return {
-            ...loc,
-            info: { ...loc.info, address },
-          };
-        }));
+          // Fetch addresses and update locations
+          const updatedLocations = await Promise.all(initialLocations.map(async (loc) => {
+            const address = await getAddress(loc.location.lat, loc.location.long);
+            return {
+              ...loc,
+              info: {
+                ...loc.info,
+                address
+              }
+            };
+          }));
 
-        setLocations(updatedLocations);
+          setLocations(updatedLocations);
+        } catch (error) {
+          console.error('Error fetching locations:', error);
+        }
       };
 
-      fetchLocations();
+      // Set interval to fetch locations every second
+      const intervalId = setInterval(fetchLocations, 1000);
+
+      // Clear interval on cleanup
+      return () => clearInterval(intervalId);
     }
   }, [googleMaps, getAddress]);
 
+  console.log(locations);
   return locations;
 };
 

@@ -1,12 +1,15 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import axios from 'axios';
 import { GoogleMap, Marker, InfoWindow, useLoadScript } from '@react-google-maps/api';
 import debounce from 'lodash.debounce';
 import useGeolocation from '../hooks/useGeolocation';
 import useGeocode from '../hooks/useGeocode';
 import { Circle } from '../Circle';
 import { FiNavigation } from 'react-icons/fi';
-import { FaArrowLeft, FaInfo, FaInfoCircle, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaInfo, FaInfoCircle, FaStar, FaTimes } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { TextareaAutosize } from '@mui/material';
+import TimePicker from 'react-time-picker'
 
 const libraries = ['places'];
 
@@ -24,6 +27,49 @@ const AddSpot = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [markers, setMarkers] = useState([]);
   const [instructions, setInstructions] = useState(true);
+  const [rating, setRating] = useState(0); // State to store the current rating
+  const [newLocationName, setNewLocationName] = useState("");
+  const [newLocationRating, setNewLocationRating] = useState(0);
+  const [newLocationIDRequired, setNewLocationIDRequired] = useState(true);
+  const [newLocationSilentArea, setNewLocationSilentArea] = useState(true);
+  const [fromTime, setFromTime] = useState('');
+  const [toTime, setToTime] = useState('');
+  const [newLocationOpenHours, setNewLocationOpenHours] = useState("");
+  const [newLocationComment, setNewLocationComment] = useState("");
+  const [newLocationLongLat, setNewLocationLongLat] = useState({});
+  const [message, setMessage] = useState("");
+
+
+  const formatTime = (time) => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = ((hours + 11) % 12 + 1); // Convert to 12-hour format
+    return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
+
+  // Function to update the combined hours string
+  const updateOpenHours = useCallback(() => {
+    const formattedFrom = formatTime(fromTime);
+    const formattedTo = formatTime(toTime);
+    setNewLocationOpenHours(`${formattedFrom} - ${formattedTo}`);
+  }, [fromTime, toTime]);
+
+  // Handle time change and update open hours
+  const handleTimeChange = (event) => {
+    const { name, value } = event.target;
+    if (name === 'from') {
+      setFromTime(value);
+    } else if (name === 'to') {
+      setToTime(value);
+    }
+    updateOpenHours();
+  };
+
+  const handleStarClick = (index) => {
+    setRating(index + 1); // Update rating based on clicked star index
+    setNewLocationRating(index + 1);
+  };
 
   const reloadMap = useCallback(() => {
     setMapKey(prevKey => prevKey + 1);
@@ -109,6 +155,75 @@ const AddSpot = () => {
     setInstructions(!instructions);
   }
 
+  const handleName = (e) => {
+    const value = e.target.value;
+    setNewLocationName(value);
+  }
+
+  const handleID = (value) => {
+    if(value == 1){
+      setNewLocationIDRequired(true);
+    }else if(value == 2){
+      setNewLocationIDRequired(false);
+    }
+  }
+  
+  const handleSilentArea = (value) => {
+    if(value == 1){
+      setNewLocationSilentArea(true);
+    }else if(value == 2){
+      setNewLocationSilentArea(false);
+    }
+  }
+
+  const handleHours = (e) => {
+    setNewLocationOpenHours(e.target.value);
+  }
+  
+  const handleComment = (e) => {
+    setNewLocationComment(e.target.value);
+  }
+
+  const submitStudySpot = async () => {
+    try {
+      const response = await axios.post('http://localhost:3001/createstudyspot', {
+        key: newLocationName,
+        name: newLocationName,
+        rating: newLocationRating,
+        IDRequired: newLocationIDRequired,
+        silentArea: newLocationSilentArea,
+        openHours: newLocationOpenHours,
+        comment: newLocationComment,
+        lat: marker.lat,
+        long: marker.lng
+      });
+
+      if (response.data) {
+        setMessage('Study spot created successfully!');
+        // Handle success (e.g., show a message or redirect)
+      } else {
+        setMessage('Study spot creation failed: No data received');
+      }
+    } catch (error) {
+      if (error.response) {
+        // Error from the server
+        if (error.response.status === 400) {
+          setMessage('Bad Request: Check your input');
+        } else if (error.response.status === 404) {
+          setMessage('Resource not found!');
+        } else {
+          setMessage(`Server error: ${error.response.status}`);
+        }
+      } else if (error.request) {
+        // No response received
+        setMessage('No response received from server');
+      } else {
+        // Error in setting up the request
+        setMessage(`Error: ${error.message}`);
+      }
+    }
+  };
+  
   return (
     <div className='w-full h-screen relative'>
 
@@ -209,16 +324,79 @@ const AddSpot = () => {
       </GoogleMap>
       
       {marker && (
-      <div className={`fixed bottom-0 lg:top-4 lg:right-4 m-4 p-4 bg-white shadow-md rounded-lg lg:w-1/4 h-2/3 z-40 flex flex-col ${hideUI ? 'hidden' : ''}`}>
+      <div className={`fixed bottom-0 lg:top-4 lg:right-4 m-4 p-4 bg-white shadow-md rounded-lg lg:w-1/4 h-3/4 z-40 flex flex-col ${hideUI ? 'hidden' : ''}`}>
         <button className='flex lg:hidden mb-2' onClick={handleHideUI}>Hide</button>
           <div className="p-4">
-            <h3 className="text-lg font-bold">Location Details</h3>
+            <h2 className='text-lg'><strong>Create a Study Spot</strong></h2>
+            <p className='text-xs mt-2'>{marker.address}</p>
+            <p className='mt-2'>Study Spot Name</p>
+            <input onChange={(e) => handleName(e)} className='text-sm w-full p-2 h-8 text-sm border w-full border-gray-300 rounded mt-1' placeholder='Location Name'/>
+            <p className='mt-2'>Rating</p>
+            <div className='flex flex-row'>
+              {[1, 2, 3, 4, 5].map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleStarClick(index)}
+                  className={`p-1 ${index < rating ? 'text-yellow-500' : 'text-gray-300'}`}
+                >
+                  <FaStar size={20} />
+                </button>
+              ))}
+            </div>
+
+            <p className='mt-2'>ID Required?</p>
+            <div className='flex flex-row gap-2 mt-1'>
+              <button onClick={() => handleID(1)} className={`${newLocationIDRequired ? "bg-blue-500 text-white" : "bg-gray-200 text-black"} px-2 text-xs py-1 rounded-md`}>Yes</button>
+              <button onClick={() => handleID(2)} className={`${!newLocationIDRequired ? "bg-blue-500 text-white" : "bg-gray-200 text-black"} px-2 text-xs py-1 rounded-md`}>No</button>
+            </div>
+
+            <p className='mt-2'>Silent Study Areas?</p>
+            <div className='flex flex-row gap-2 mt-1'>
+              <button onClick={() => handleSilentArea(1)}  className={`${newLocationSilentArea ? "bg-blue-500 text-white" : "bg-gray-200 text-black"} px-2 text-xs py-1 rounded-md`}>Yes</button>
+              <button onClick={() => handleSilentArea(2)} className={`${!newLocationSilentArea ? "bg-blue-500 text-white" : "bg-gray-200 text-black"}  px-2 text-xs py-1 rounded-md`}>No</button>
+            </div>
+
+            <p className='mt-2'>Opening Hours</p>
+            <div className='flex flex-row items-center gap-2 mt-1'>
+            <p className='text-xs'>From:</p>
+              <input
+                type='time'
+                name='from'
+                value={fromTime}
+                onChange={handleTimeChange}
+                className='text-xs'
+              />
+              <p className='text-xs'>To:</p>
+              <input
+                type='time'
+                name='to'
+                value={toTime}
+                onChange={handleTimeChange}
+                className='text-xs'
+              />
+            </div>
+
+            <p className='mt-2'>Write a comment</p>
+            <textarea onChange={(e) => handleComment(e)} className='text-sm h-32 w-full p-2 h-8 text-sm mt-1 mb-2 border w-full border-gray-300 rounded' placeholder='Leave some helpful info...'/>
+
+            <button onClick={submitStudySpot} className='w-max bg-blue-500 text-white px-2 py-1 text-sm rounded-md'>Create Study Spot</button>
+            
+            {/* <h3 className="text-lg font-bold">Location Details</h3>
             <p><strong>Latitude:</strong> {marker.lat}</p>
             <p><strong>Longitude:</strong> {marker.lng}</p>
-            <p><strong>Address:</strong> {marker.address}</p>
+            <p><strong>Address:</strong> {marker.address}</p> */}
           </div>
       </div>
       )}
+
+      {/* <div className='fixed bottom-32 right-32 z-50 bg-white'>
+        <p>{newLocationName}</p>
+        <p>{newLocationRating}</p>
+        <p>{newLocationIDRequired ? <p>yes</p> : <p>no</p>}</p>
+        <p>{newLocationSilentArea ? <p>yes</p> : <p>no</p>}</p>
+        <p>{newLocationOpenHours}</p>
+        <p>{newLocationComment}</p>
+      </div> */}
     </div>
   );
 };

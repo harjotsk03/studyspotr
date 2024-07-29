@@ -23,32 +23,22 @@ const CitySearch = () => {
   const [userRating, setUserRating] = useState(null);
   const [showLocations, setShowLocations] = useState(false); // Track whether to show locations
 
-  const getRatingStars = (rating) => {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-    const totalStars = Array(fullStars).fill(<FaStar className="star-full" />);
+  // const getRatingStars = (rating) => {
+  //   const fullStars = Math.floor(rating);
+  //   const hasHalfStar = rating % 1 !== 0;
+  //   const totalStars = Array(fullStars).fill(<FaStar className="star-full" />);
     
-    if (hasHalfStar) {
-      totalStars.push(<FaStarHalfAlt className="star-full" />);
-    }
+  //   if (hasHalfStar) {
+  //     totalStars.push(<FaStarHalfAlt className="star-full" />);
+  //   }
 
-    while (totalStars.length < 5) {
-      totalStars.push(<FaStar key={totalStars.length} className="text-gray-200" />);
-    }
+  //   while (totalStars.length < 5) {
+  //     totalStars.push(<FaStar key={totalStars.length} className="text-gray-200" />);
+  //   }
 
-    return totalStars;
-  };
-
-  const descriptors = [
-    { key: 'Wifi', value: getRatingStars(5), icon: <FaWifi size={12} /> },
-    { key: 'Food', value: getRatingStars(3), icon: <FaHamburger size={11} /> }
-  ];  
-  
-  const reviews = [
-    { key: 1, name: 'Harjot Singh', description: "Great place to study, not the quietest place but really good vibe, great food spots, and wifi was top notch" },
-    { key: 2, name: 'Gurleen Gill', description: "Pretty average place, food was okay, wifi was so so. Only go if you are close by already." }
-  ];  
-
+  //   return totalStars;
+  // };
+ 
   const reloadMap = useCallback(() => {
     setMapKey(prevKey => prevKey + 1);
     setSelectedCity(null);
@@ -58,7 +48,7 @@ const CitySearch = () => {
   }, []);
 
   const filteredLocations = locations.filter(loc =>
-    loc.info.name.toLowerCase().includes(searchTerm.toLowerCase())
+    loc.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleMapClick = () => {
@@ -71,9 +61,10 @@ const CitySearch = () => {
   const handleMarkerClick = (loc) => {
     setSelectedCity(loc);
     setTravelTime('');
-    const distance = getDistance(location.lat, location.lng, loc.location.lat, loc.location.lng);
+    const distance = getDistance(location.lat, location.lng, loc.location.lat, loc.location.long);
     if (distance <= 500) {
-      setUserRating(loc.info.rating);
+      console.log('yes')
+      setUserRating(loc.rating);
     } else {
       setUserRating(null);
     }
@@ -138,7 +129,7 @@ const CitySearch = () => {
               onClick={() => handleMarkerClick(loc)}
               className='p-2 cursor-pointer hover:bg-gray-100'
             >
-              {loc.info.name}
+              {loc.name}
             </li>
           ))}
         </ul>
@@ -167,7 +158,10 @@ const CitySearch = () => {
             {filteredLocations.map(loc => (
               <AdvancedMarker
                 key={loc.key}
-                position={loc.location}
+                position={{
+                  lat: loc.location.lat,
+                  lng: loc.location.long
+                }}
                 onClick={() => handleMarkerClick(loc)}
               >
                 <Pin />
@@ -177,11 +171,15 @@ const CitySearch = () => {
             {selectedCity && (
               <Directions
                 origin={location}
-                destination={selectedCity.location}
+                destination={{
+                  lat: selectedCity.location.lat,
+                  lng: selectedCity.location.long
+                }}
                 travelMode={travelMode}
                 onTravelTimeChange={setTravelTime}
               />
             )}
+
 
             <Circle
               radius={5}
@@ -198,12 +196,12 @@ const CitySearch = () => {
           {selectedCity && hideUI ? <button className='fixed bottom-16 px-2 py-3 text-sm rounded-lg w-2/3 left-16 bg-white' onClick={handleHideUI}>Show Info</button> : <></>}
 
           {selectedCity && (
-            <div className={`fixed bottom-0 lg:top-4 lg:right-4 m-4 p-4 bg-white shadow-md rounded-lg lg:w-1/4 lg:h-2/3 z-40 flex flex-col ${hideUI ? 'hidden' : ''}`}>
+            <div className={`fixed bottom-0 lg:top-4 lg:right-4 m-4 p-4 bg-white shadow-md rounded-lg lg:w-1/4 h-2/3 z-30 flex flex-col ${hideUI ? 'hidden' : ''}`}>
               <button className='flex lg:hidden mb-2 text-sm' onClick={handleHideUI}>Hide Info</button>
               <div className='flex-1 overflow-hidden flex flex-col'>
                 <div className='flex-1 overflow-hidden'>
                   <InfoCard
-                    info={selectedCity.info}
+                    info={selectedCity}
                     onChangeMode={setTravelMode}
                   />
                   {userRating !== null && (
@@ -251,19 +249,12 @@ const CitySearch = () => {
                         </p>
                       )}
                     </div>
-                    <div className='flex flex-col gap-2 mb-1 pt-2 h-36'>
-                      {descriptors.map(descriptor => (
-                        <div key={descriptor.key} className='p-3 bg-gray-100'>
-                          <p className='text-sm flex flex-row items-center gap-1'>{descriptor.icon} {descriptor.key}: {descriptor.value}</p> 
-                        </div>
-                      ))}
-                      <h3 className='text-md mt-2'>Reviews</h3>
-                    </div>
+                    <h3 className='mb-1 mt-3'>Reviews</h3>
                     <div className='overflow-scroll h-32 flex flex-col gap-2'>
-                      {reviews.map(review => (
-                        <div key={review.key} className='p-3 bg-gray-100 flex flex-col items-start'>
-                          <p className='text-sm font-semibold'>{review.name}</p>
-                          <p className='text-xs'>{review.description}</p>
+                      {selectedCity.comments.map(comment => (
+                        <div key={comment.key} className='p-3 bg-gray-100 flex flex-col items-start'>
+                          <h2 className='text-sm'><strong>{comment.username}</strong></h2>
+                          <p className='text-xs capitalize'>{comment.comment}</p>
                         </div>
                       ))}
                     </div>
